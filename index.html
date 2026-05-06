@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shears Unlimited — The Fun Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --coral: #FF6B6B;
+    --yellow: #FFE66D;
+    --mint: #4ECDC4;
+    --purple: #6C63FF;
+    --pink: #FF9EBC;
+    --orange: #FF9A3C;
+    --dark: #2D2D2D;
+    --card-bg: #ffffff;
+    --shadow: 0 8px 32px rgba(0,0,0,0.10);
+    --shadow-pop: 0 16px 48px rgba(108,99,255,0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'Nunito', sans-serif;
+    color: var(--dark);
+    overflow-x: hidden;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='5' fill='%23FF6B6B' opacity='0.7'/%3E%3C/svg%3E") 12 12, auto;
+  }
+
+  /* ---- BACKGROUND DOODLES ---- */
+  .bg-doodles {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .doodle {
+    position: absolute; font-size: 2rem; opacity: 0.07;
+    animation: floatDoodle 12s ease-in-out infinite;
+  }
+  .doodle:nth-child(2) { animation-delay: -3s; }
+  .doodle:nth-child(3) { animation-delay: -6s; }
+  .doodle:nth-child(4) { animation-delay: -9s; }
+  .doodle:nth-child(5) { animation-delay: -4s; }
+  .doodle:nth-child(6) { animation-delay: -7s; }
+  @keyframes floatDoodle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-30px) rotate(15deg); }
+  }
+
+  /* ---- NAVBAR ---- */
+  nav {
+    position: sticky; top: 0; z-index: 1000;
+    background: var(--purple);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.3);
+  }
+  .nav-logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem; color: #fff;
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo span { font-size: 1.8rem; }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .cart-btn {
+    background: var(--yellow); border: none; border-radius: 50px;
+    padding: 10px 22px; font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: var(--dark);
+  }
+  .cart-btn:hover { transform: scale(1.07); box-shadow: 0 4px 16px rgba(255,230,109,0.5); }
+  .cart-count {
+    background: var(--coral); color: #fff;
+    border-radius: 50%; width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800;
+    transition: transform 0.3s;
+  }
+  .cart-count.bump { animation: bump 0.3s ease; }
+  @keyframes bump { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+
+  /* ---- HERO ---- */
+  .hero {
+    position: relative; z-index: 1;
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 500px;
+    background: radial-gradient(ellipse, rgba(108,99,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--yellow); color: var(--dark);
+    border-radius: 50px; padding: 6px 18px;
+    font-weight: 800; font-size: 0.85rem;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    animation: wiggle 2.5s ease-in-out infinite;
+  }
+  @keyframes wiggle {
+    0%,100%{transform:rotate(-2deg)} 50%{transform:rotate(2deg)}
+  }
+  .hero h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    line-height: 1.1;
+    color: var(--dark);
+    margin-bottom: 1rem;
+  }
+  .hero h1 .highlight {
+    color: var(--purple);
+    display: inline-block;
+    animation: colorShift 4s ease-in-out infinite;
+  }
+  @keyframes colorShift {
+    0%,100%{color:var(--purple)} 33%{color:var(--coral)} 66%{color:var(--mint)}
+  }
+  .hero-sub {
+    font-size: 1.2rem; color: #666; max-width: 560px; margin: 0 auto 2rem;
+    font-weight: 600;
+  }
+  .hero-cta {
+    display: inline-block;
+    background: var(--coral); color: #fff;
+    border-radius: 50px; padding: 14px 38px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem; text-decoration: none;
+    box-shadow: 0 6px 20px rgba(255,107,107,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .hero-cta:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 12px 30px rgba(255,107,107,0.5); }
+
+  /* Floating emojis in hero */
+  .floaters { position: absolute; inset: 0; pointer-events: none; }
+  .floater {
+    position: absolute; font-size: 2.2rem;
+    animation: floatUp 6s ease-in-out infinite;
+  }
+  .floater:nth-child(1) { left: 8%; top: 20%; animation-delay: 0s; }
+  .floater:nth-child(2) { left: 18%; top: 60%; animation-delay: -2s; font-size: 1.5rem; }
+  .floater:nth-child(3) { right: 10%; top: 15%; animation-delay: -1s; }
+  .floater:nth-child(4) { right: 20%; top: 55%; animation-delay: -3s; font-size: 1.8rem; }
+  .floater:nth-child(5) { left: 40%; top: 5%; animation-delay: -4s; font-size: 1.4rem; }
+  @keyframes floatUp {
+    0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-20px) rotate(5deg)}
+  }
+
+  /* ---- STATS BAR ---- */
+  .stats-bar {
+    position: relative; z-index: 1;
+    background: var(--dark);
+    padding: 1.2rem 2rem;
+    display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+    overflow: hidden;
+  }
+  .stat { text-align: center; color: #fff; }
+  .stat-num { font-family: 'Fredoka One', cursive; font-size: 1.8rem; color: var(--yellow); }
+  .stat-label { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ---- SHOP SECTION ---- */
+  .shop { position: relative; z-index: 1; padding: 3rem 2rem 5rem; max-width: 1200px; margin: 0 auto; }
+  .section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.4rem; text-align: center; margin-bottom: 0.5rem;
+  }
+  .section-sub { text-align: center; color: #888; font-weight: 600; margin-bottom: 2rem; }
+
+  /* ---- CATEGORY TABS ---- */
+  .tabs {
+    display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .tab {
+    background: #fff; border: 3px solid transparent;
+    border-radius: 50px; padding: 10px 26px;
+    font-family: 'Nunito', sans-serif; font-weight: 800;
+    font-size: 1rem; cursor: pointer;
+    transition: all 0.25s; box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .tab.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .tab[data-cat="books"].active { background: var(--coral); border-color: var(--coral); }
+  .tab[data-cat="pod"].active { background: var(--mint); border-color: var(--mint); color: var(--dark); }
+  .tab[data-cat="drops"].active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+  /* ---- PRODUCT GRID ---- */
+  .products { display: none; }
+  .products.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.6rem; }
+
+  .product-card {
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .product-card:hover { transform: translateY(-10px) rotate(1deg); box-shadow: var(--shadow-pop); }
+  .product-card:nth-child(even):hover { transform: translateY(-10px) rotate(-1deg); }
+
+  .card-img {
+    width: 100%; height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem;
+    position: relative; overflow: hidden;
+  }
+  .card-img::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.04));
+  }
+
+  .card-body { padding: 1.2rem 1.4rem 1.4rem; }
+  .card-tag {
+    display: inline-block;
+    background: var(--yellow); color: var(--dark);
+    border-radius: 50px; padding: 2px 12px;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+  }
+  .card-title { font-family: 'Fredoka One', cursive; font-size: 1.25rem; margin-bottom: 0.3rem; }
+  .card-desc { font-size: 0.88rem; color: #888; line-height: 1.5; margin-bottom: 1rem; font-weight: 600; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .card-price { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: var(--purple); }
+  .add-btn {
+    background: var(--purple); color: #fff;
+    border: none; border-radius: 50px;
+    padding: 8px 20px; font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 0.9rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .add-btn:hover { background: var(--coral); transform: scale(1.08); }
+  .add-btn:active { transform: scale(0.97); }
+
+  .badge-new {
+    position: absolute; top: 12px; right: 12px;
+    background: var(--coral); color: #fff;
+    border-radius: 50px; padding: 3px 12px;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    animation: wiggle 3s ease-in-out infinite;
+  }
+  .badge-hot {
+    position: absolute; top: 12px; right: 12px;
+    background: var(--orange); color: #fff;
+    border-radius: 50px; padding: 3px 12px;
+    font-size: 0.72rem; font-weight: 800;
+    animation: wiggle 2.5s ease-in-out infinite;
+  }
+
+  /* ---- CART OVERLAY ---- */
+  .cart-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 2000; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s; backdrop-filter: blur(4px);
+  }
+  .cart-overlay.open { opacity: 1; pointer-events: all; }
+
+  .cart-drawer {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: min(420px, 100vw);
+    background: #fff; z-index: 2001;
+    transform: translateX(100%); transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    display: flex; flex-direction: column;
+    border-radius: 24px 0 0 24px;
+    overflow: hidden;
+    box-shadow: -8px 0 48px rgba(0,0,0,0.15);
+  }
+  .cart-overlay.open .cart-drawer { transform: translateX(0); }
+
+  .cart-header {
+    background: var(--purple); color: #fff;
+    padding: 1.4rem 1.8rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cart-header h2 { font-family: 'Fredoka One', cursive; font-size: 1.6rem; }
+  .close-cart {
+    background: rgba(255,255,255,0.2); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 1.2rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .close-cart:hover { background: rgba(255,255,255,0.35); }
+
+  .cart-items { flex: 1; overflow-y: auto; padding: 1.2rem 1.5rem; }
+  .cart-empty {
+    text-align: center; padding: 3rem 1rem;
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+  }
+  .cart-empty .empty-emoji { font-size: 4rem; animation: floatUp 3s ease-in-out infinite; }
+  .cart-empty p { font-weight: 700; color: #aaa; font-size: 1.1rem; }
+
+  .cart-item {
+    display: flex; gap: 1rem; align-items: center;
+    padding: 1rem 0; border-bottom: 2px dashed #f0f0f0;
+  }
+  .cart-item-emoji { font-size: 2.8rem; min-width: 50px; text-align: center; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-weight: 800; font-size: 0.95rem; }
+  .cart-item-price { font-family: 'Fredoka One', cursive; color: var(--purple); }
+  .cart-item-controls { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .qty-btn {
+    background: var(--cream); border: 2px solid #eee;
+    border-radius: 50%; width: 26px; height: 26px;
+    font-weight: 800; cursor: pointer; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .qty-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .qty-display { font-weight: 800; min-width: 24px; text-align: center; }
+  .remove-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1.1rem; margin-left: auto; transition: color 0.2s; }
+  .remove-btn:hover { color: var(--coral); }
+
+  .cart-footer { padding: 1.4rem 1.5rem; border-top: 3px solid var(--cream); }
+  .cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .cart-total-label { font-weight: 800; font-size: 1.1rem; }
+  .cart-total-price { font-family: 'Fredoka One', cursive; font-size: 1.8rem; color: var(--purple); }
+
+  .checkout-btn {
+    width: 100%; padding: 16px;
+    background: var(--coral); color: #fff;
+    border: none; border-radius: 16px;
+    font-family: 'Fredoka One', cursive; font-size: 1.3rem;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 6px 20px rgba(255,107,107,0.35);
+    margin-bottom: 0.8rem;
+  }
+  .checkout-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(255,107,107,0.45); }
+
+  .paypal-btn {
+    width: 100%; padding: 14px;
+    background: #FFC439; color: var(--dark);
+    border: none; border-radius: 16px;
+    font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .paypal-btn:hover { background: #e6b032; transform: translateY(-2px); }
+
+  /* ---- CHECKOUT MODAL ---- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 3000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    backdrop-filter: blur(6px); padding: 1rem;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #fff; border-radius: 28px; padding: 2.5rem;
+    width: min(480px, 100%); max-height: 90vh; overflow-y: auto;
+    transform: scale(0.85); transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-title { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 0.3rem; }
+  .modal-sub { color: #888; font-weight: 600; margin-bottom: 2rem; }
+
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 12px 16px;
+    border: 2px solid #eee; border-radius: 12px;
+    font-family: 'Nunito', sans-serif; font-size: 1rem;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--purple); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .order-summary {
+    background: var(--cream); border-radius: 16px;
+    padding: 1.2rem; margin-bottom: 1.5rem;
+  }
+  .order-summary h3 { font-family: 'Fredoka One', cursive; margin-bottom: 0.8rem; }
+  .summary-item { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 600; }
+  .summary-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem; border-top: 2px dashed #ddd; padding-top: 0.8rem; margin-top: 0.4rem; }
+
+  .payment-methods { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .pay-method {
+    flex: 1; padding: 14px; border: 2px solid #eee;
+    border-radius: 14px; cursor: pointer;
+    text-align: center; font-weight: 800;
+    transition: all 0.2s; font-size: 0.9rem;
+  }
+  .pay-method.active { border-color: var(--purple); background: rgba(108,99,255,0.07); }
+  .pay-method:hover { border-color: var(--purple); }
+  .pay-method-icon { font-size: 1.5rem; margin-bottom: 4px; }
+
+  .stripe-notice, .paypal-notice {
+    background: #f5f4ff; border-radius: 12px;
+    padding: 1rem; margin-bottom: 1rem; font-size: 0.88rem;
+    color: #666; font-weight: 600; border-left: 4px solid var(--purple);
+  }
+  .paypal-notice { background: #fffbf0; border-color: #FFC439; }
+
+  .close-modal-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.4rem; color: #ccc; float: right;
+    transition: color 0.2s;
+  }
+  .close-modal-btn:hover { color: var(--coral); }
+
+  /* ---- TOAST ---- */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--dark); color: #fff;
+    border-radius: 50px; padding: 12px 28px;
+    font-weight: 700; font-size: 0.95rem;
+    z-index: 9999; transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ---- MARQUEE ---- */
+  .marquee-wrap {
+    background: var(--yellow); overflow: hidden;
+    padding: 12px 0; position: relative; z-index: 1;
+  }
+  .marquee-inner {
+    display: flex; gap: 4rem; width: max-content;
+    animation: marquee 20s linear infinite;
+  }
+  .marquee-item { font-weight: 800; font-size: 0.95rem; white-space: nowrap; color: var(--dark); }
+  @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* ---- FOOTER ---- */
+  footer {
+    background: var(--dark); color: #fff;
+    padding: 3rem 2rem 2rem; position: relative; z-index: 1;
+    text-align: center;
+  }
+  .footer-logo { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 0.5rem; }
+  .footer-tagline { color: #aaa; font-weight: 600; margin-bottom: 1.5rem; }
+  .footer-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .footer-links a { color: #ccc; text-decoration: none; font-weight: 700; font-size: 0.9rem; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--yellow); }
+  .footer-copy { color: #555; font-size: 0.82rem; border-top: 1px solid #333; padding-top: 1.5rem; }
+
+  /* ---- SCROLL ANIMATIONS ---- */
+  .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  @media(max-width:600px) {
+    .hero h1 { font-size: 2.5rem; }
+    .stats-bar { gap: 1.5rem; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background doodles -->
+<div class="bg-doodles">
+  <div class="doodle" style="top:10%;left:5%">⭐</div>
+  <div class="doodle" style="top:30%;right:8%">🌀</div>
+  <div class="doodle" style="top:55%;left:12%">💫</div>
+  <div class="doodle" style="top:70%;right:15%">✨</div>
+  <div class="doodle" style="top:85%;left:40%">🎉</div>
+  <div class="doodle" style="top:20%;left:45%">🌟</div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">🛒 Added to cart!</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="nav-logo"><span>✂️</span> Shears Unlimited</a>
+  <div class="nav-right">
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Cart <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="floaters">
+    <span class="floater">📚</span>
+    <span class="floater">✨</span>
+    <span class="floater">👕</span>
+    <span class="floater">💡</span>
+    <span class="floater">⭐</span>
+  </div>
+  <div class="hero-badge">🎉 Shop Is Now Open!</div>
+  <h1>Everything You <span class="highlight">Love</span>,<br>All In One Place</h1>
+  <p class="hero-sub">Books, custom merch, and awesome products — curated by Shears Unlimited Holdings LLC</p>
+  <a href="#shop" class="hero-cta">Start Shopping 🛍️</a>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-inner">
+    <span class="marquee-item">📚 Books & Digital ·</span>
+    <span class="marquee-item">👕 Custom Merch ·</span>
+    <span class="marquee-item">🚚 Fast Shipping ·</span>
+    <span class="marquee-item">⚡ Instant Digital Downloads ·</span>
+    <span class="marquee-item">💳 Secure Checkout ·</span>
+    <span class="marquee-item">✨ Unique Products ·</span>
+    <span class="marquee-item">📚 Books & Digital ·</span>
+    <span class="marquee-item">👕 Custom Merch ·</span>
+    <span class="marquee-item">🚚 Fast Shipping ·</span>
+    <span class="marquee-item">⚡ Instant Digital Downloads ·</span>
+    <span class="marquee-item">💳 Secure Checkout ·</span>
+    <span class="marquee-item">✨ Unique Products ·</span>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">3+</div><div class="stat-label">Published Books</div></div>
+  <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Products</div></div>
+  <div class="stat"><div class="stat-num">3</div><div class="stat-label">Marketplaces</div></div>
+  <div class="stat"><div class="stat-num">5★</div><div class="stat-label">Satisfaction</div></div>
+</div>
+
+<!-- SHOP SECTION -->
+<section class="shop fade-up" id="shop">
+  <h2 class="section-title">🛍️ The Shop</h2>
+  <p class="section-sub">Pick a category and find something awesome</p>
+
+  <div class="tabs">
+    <button class="tab active" data-cat="all" onclick="switchTab('all', this)">🌟 All Products</button>
+    <button class="tab" data-cat="books" onclick="switchTab('books', this)">📚 Books</button>
+    <button class="tab" data-cat="pod" onclick="switchTab('pod', this)">👕 Merch</button>
+    <button class="tab" data-cat="drops" onclick="switchTab('drops', this)">⚡ Tech & More</button>
+  </div>
+
+  <!-- ALL PRODUCTS -->
+  <div class="products active" id="cat-all" data-cat="all"></div>
+  <div class="products" id="cat-books" data-cat="books"></div>
+  <div class="products" id="cat-pod" data-cat="pod"></div>
+  <div class="products" id="cat-drops" data-cat="drops"></div>
+</section>
+
+<!-- CART OVERLAY + DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="handleOverlayClick(event)">
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h2>🛒 Your Cart</h2>
+      <button class="close-cart" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">
+        <span class="empty-emoji">🛒</span>
+        <p>Your cart is empty!<br>Add something fun 🎉</p>
+      </div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-price" id="cartTotal">$0.00</span>
+      </div>
+      <button class="checkout-btn" onclick="openCheckout('stripe')">💳 Checkout with Stripe</button>
+      <button class="paypal-btn" onclick="openCheckout('paypal')"><span>🅿️</span> Pay with PayPal</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="close-modal-btn" onclick="closeModal()">✕</button>
+    <h2 class="modal-title">✨ Checkout</h2>
+    <p class="modal-sub">Almost there — just fill in your details!</p>
+
+    <div class="order-summary">
+      <h3>🧾 Order Summary</h3>
+      <div id="summaryItems"></div>
+      <div class="summary-total">
+        <span>Total</span>
+        <span id="summaryTotal">$0.00</span>
+      </div>
+    </div>
+
+    <div class="payment-methods">
+      <div class="pay-method active" id="stripe-method" onclick="selectPayment('stripe')">
+        <div class="pay-method-icon">💳</div>
+        Stripe / Card
+      </div>
+      <div class="pay-method" id="paypal-method" onclick="selectPayment('paypal')">
+        <div class="pay-method-icon">🅿️</div>
+        PayPal
+      </div>
+    </div>
+
+    <div id="stripe-panel">
+      <div class="stripe-notice">
+        🔒 Secure payment powered by Stripe. You'll be redirected to complete your purchase safely.
+      </div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" placeholder="Jesse Smith" id="buyerName">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" placeholder="you@email.com" id="buyerEmail">
+      </div>
+      <button class="checkout-btn" onclick="processStripe()" style="margin-top:1rem">
+        💳 Pay with Stripe →
+      </button>
+    </div>
+
+    <div id="paypal-panel" style="display:none">
+      <div class="paypal-notice">
+        🅿️ You'll be redirected to PayPal to complete your purchase securely.
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" placeholder="you@email.com" id="paypalEmail">
+      </div>
+      <button class="paypal-btn" onclick="processPayPal()" style="margin-top:1rem;padding:16px;font-size:1.1rem;border-radius:16px;width:100%">
+        🅿️ Continue to PayPal →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">✂️ Shears Unlimited</div>
+  <p class="footer-tagline">Books · Merch · Tech · And More 🌟</p>
+  <div class="footer-links">
+    <a href="mailto:info@shearsunlimitedholdingsllc.com">📧 Contact Us</a>
+    <a href="#">📦 Track Order</a>
+    <a href="#">↩️ Returns</a>
+    <a href="#">🔒 Privacy Policy</a>
+    <a href="#">📋 Terms</a>
+  </div>
+  <p class="footer-copy">© 2026 Shears Unlimited Holdings LLC — Atlanta, Georgia 🍑<br>All rights reserved.</p>
+</footer>
+
+<script>
+// ============================================
+//  PRODUCT DATA — edit prices, links, emoji
+// ============================================
+const products = [
+  // --- BOOKS ---
+  {
+    id: 'book1', cat: 'books',
+    emoji: '🍄', color: '#FFF0F0',
+    tag: 'Paperback / Digital', badge: 'new',
+    title: 'Psychedelics and the Boundaries of Consciousness',
+    desc: 'A deep dive into mind-expanding substances and what they reveal about the nature of the human mind.',
+    price: 14.99,
+    // ↓ Paste your Stripe Payment Link here
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    // ↓ Paste your PayPal button link here
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/14.99',
+  },
+  {
+    id: 'book2', cat: 'books',
+    emoji: '🕵️', color: '#F0F4FF',
+    tag: 'Paperback / Digital', badge: '',
+    title: 'Shadows of Power',
+    desc: 'An investigative journey through the hidden corridors of influence and control in modern society.',
+    price: 16.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/16.99',
+  },
+  {
+    id: 'book3', cat: 'books',
+    emoji: '⚖️', color: '#F0FFF4',
+    tag: 'Paperback / Digital', badge: 'hot',
+    title: 'The Trafficking Files',
+    desc: 'Groundbreaking investigative reporting exposing networks of exploitation. Fact-checked and compelling.',
+    price: 18.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/18.99',
+  },
+
+  // --- POD / MERCH ---
+  {
+    id: 'pod1', cat: 'pod',
+    emoji: '👕', color: '#F5F0FF',
+    tag: 'Print-on-Demand', badge: 'new',
+    title: 'Shears Unlimited Tee',
+    desc: 'Soft, premium unisex tee. Made-to-order with vibrant ink that won\'t fade.',
+    price: 24.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/24.99',
+  },
+  {
+    id: 'pod2', cat: 'pod',
+    emoji: '☕', color: '#FFF8E7',
+    tag: 'Print-on-Demand', badge: '',
+    title: 'Signature Coffee Mug',
+    desc: '11oz ceramic mug with full-wrap design. Dishwasher safe. Start your day with style.',
+    price: 19.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/19.99',
+  },
+  {
+    id: 'pod3', cat: 'pod',
+    emoji: '🎒', color: '#F0FFFF',
+    tag: 'Print-on-Demand', badge: '',
+    title: 'Logo Tote Bag',
+    desc: 'Heavy-duty canvas tote with bold Shears Unlimited branding. Carry it everywhere.',
+    price: 22.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/22.99',
+  },
+
+  // --- DROPSHIPPING / TECH ---
+  {
+    id: 'drop1', cat: 'drops',
+    emoji: '💡', color: '#FFFCF0',
+    tag: 'Tech & Tools', badge: 'hot',
+    title: 'LED Work Light Pro',
+    desc: 'Super-bright 5000K LED work light. Perfect for garages, workshops, and job sites.',
+    price: 49.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/49.99',
+  },
+  {
+    id: 'drop2', cat: 'drops',
+    emoji: '🌐', color: '#F0F8FF',
+    tag: 'Networking', badge: '',
+    title: 'Axiom Network Module',
+    desc: 'Enterprise-grade SFP+ transceiver. Compatible with Cisco, HPE, and more.',
+    price: 89.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/89.99',
+  },
+  {
+    id: 'drop3', cat: 'drops',
+    emoji: '🖥️', color: '#F5FFF5',
+    tag: 'Server Hardware', badge: '',
+    title: 'HPE Server Accessory Kit',
+    desc: 'Genuine HPE accessories for ProLiant servers. Reliable, commercial-grade quality.',
+    price: 129.99,
+    stripeLink: 'https://buy.stripe.com/YOUR_LINK_HERE',
+    paypalLink: 'https://paypal.me/YOUR_HANDLE/129.99',
+  },
+];
+
+// ============================================
+//  CART STATE
+// ============================================
+let cart = {};
+let selectedPayment = 'stripe';
+
+function getCartItems() { return Object.values(cart); }
+function getCartCount() { return getCartItems().reduce((s, i) => s + i.qty, 0); }
+function getCartTotal() { return getCartItems().reduce((s, i) => s + i.price * i.qty, 0); }
+
+// ============================================
+//  RENDER PRODUCTS
+// ============================================
+function renderProducts() {
+  const cats = ['all', 'books', 'pod', 'drops'];
+  cats.forEach(cat => {
+    const container = document.getElementById('cat-' + cat);
+    const list = cat === 'all' ? products : products.filter(p => p.cat === cat);
+    container.innerHTML = list.map(p => `
+      <div class="product-card">
+        ${p.badge === 'new' ? '<span class="badge-new">New</span>' : ''}
+        ${p.badge === 'hot' ? '<span class="badge-hot">🔥 Hot</span>' : ''}
+        <div class="card-img" style="background:${p.color}">${p.emoji}</div>
+        <div class="card-body">
+          <span class="card-tag">${p.tag}</span>
+          <div class="card-title">${p.title}</div>
+          <div class="card-desc">${p.desc}</div>
+          <div class="card-footer">
+            <span class="card-price">$${p.price.toFixed(2)}</span>
+            <button class="add-btn" onclick="addToCart('${p.id}')">Add to Cart ✨</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+// ============================================
+//  TABS
+// ============================================
+function switchTab(cat, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.products').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('cat-' + cat).classList.add('active');
+}
+
+// ============================================
+//  CART ACTIONS
+// ============================================
+function addToCart(id) {
+  const p = products.find(p => p.id === id);
+  if (!p) return;
+  if (cart[id]) { cart[id].qty++; } 
+  else { cart[id] = { ...p, qty: 1 }; }
+  updateCartUI();
+  showToast('✨ ' + p.title + ' added!');
+  const countEl = document.getElementById('cartCount');
+  countEl.classList.remove('bump');
+  void countEl.offsetWidth;
+  countEl.classList.add('bump');
+}
+
+function removeFromCart(id) {
+  delete cart[id];
+  updateCartUI();
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) removeFromCart(id);
+  else updateCartUI();
+}
+
+function updateCartUI() {
+  document.getElementById('cartCount').textContent = getCartCount();
+  renderCartItems();
+}
+
+function renderCartItems() {
+  const items = getCartItems();
+  const container = document.getElementById('cartItems');
+  const footer = document.getElementById('cartFooter');
+  if (items.length === 0) {
+    container.innerHTML = `<div class="cart-empty"><span class="empty-emoji">🛒</span><p>Your cart is empty!<br>Add something fun 🎉</p></div>`;
+    footer.style.display = 'none';
+    return;
+  }
+  footer.style.display = 'block';
+  container.innerHTML = items.map(item => `
+    <div class="cart-item">
+      <div class="cart-item-emoji">${item.emoji}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.title}</div>
+        <div class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+          <span class="qty-display">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+        </div>
+      </div>
+      <button class="remove-btn" onclick="removeFromCart('${item.id}')">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('cartTotal').textContent = '$' + getCartTotal().toFixed(2);
+}
+
+// ============================================
+//  CART OPEN / CLOSE
+// ============================================
+function openCart() {
+  renderCartItems();
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('cartOverlay')) closeCart();
+}
+
+// ============================================
+//  CHECKOUT MODAL
+// ============================================
+function openCheckout(method) {
+  closeCart();
+  selectPayment(method);
+  // Populate summary
+  const items = getCartItems();
+  document.getElementById('summaryItems').innerHTML = items.map(i =>
+    `<div class="summary-item"><span>${i.emoji} ${i.title} ×${i.qty}</span><span>$${(i.price*i.qty).toFixed(2)}</span></div>`
+  ).join('');
+  document.getElementById('summaryTotal').textContent = '$' + getCartTotal().toFixed(2);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function selectPayment(method) {
+  selectedPayment = method;
+  document.getElementById('stripe-method').classList.toggle('active', method === 'stripe');
+  document.getElementById('paypal-method').classList.toggle('active', method === 'paypal');
+  document.getElementById('stripe-panel').style.display = method === 'stripe' ? 'block' : 'none';
+  document.getElementById('paypal-panel').style.display = method === 'paypal' ? 'block' : 'none';
+}
+
+// ============================================
+//  STRIPE — wire up to your Cloudflare Worker
+// ============================================
+function processStripe() {
+  const name = document.getElementById('buyerName').value.trim();
+  const email = document.getElementById('buyerEmail').value.trim();
+  if (!name || !email) { showToast('⚠️ Please fill in your name and email'); return; }
+  // TODO: Call your Cloudflare Worker endpoint to create a Stripe Checkout Session
+  // Example: POST /api/checkout with { items: cart, email, name }
+  // Then redirect to session.url
+  // For now, redirect to the first item's Stripe link as a placeholder
+  const items = getCartItems();
+  if (items.length === 1) {
+    window.location.href = items[0].stripeLink;
+  } else {
+    // Multi-item: your Worker will create a session with all line items
+    showToast('🔧 Connect your Stripe Worker to enable multi-item checkout!');
+  }
+}
+
+// ============================================
+//  PAYPAL — wire up to your Worker or PayPal SDK
+// ============================================
+function processPayPal() {
+  const email = document.getElementById('paypalEmail').value.trim();
+  if (!email) { showToast('⚠️ Please enter your email'); return; }
+  const items = getCartItems();
+  if (items.length === 1) {
+    window.location.href = items[0].paypalLink;
+  } else {
+    showToast('🔧 Connect PayPal SDK for multi-item checkout!');
+  }
+}
+
+// ============================================
+//  TOAST
+// ============================================
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ============================================
+//  SCROLL ANIMATION
+// ============================================
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// ============================================
+//  INIT
+// ============================================
+renderProducts();
+</script>
+</body>
+</html>
