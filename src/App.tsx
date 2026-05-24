@@ -39,9 +39,11 @@ function App() {
     { name: 'Home', ref: heroRef },
     { name: 'About', ref: aboutRef },
     { name: 'Services', ref: servicesRef },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Shop', href: '/shop' },
     { name: 'Contact', ref: contactRef },
   ];
-
+  ];
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
       {/* Navigation */}
@@ -65,13 +67,17 @@ function App() {
               {navLinks.map((link) => (
                 <button
                   key={link.name}
-                  onClick={() => scrollToSection(link.ref)}
+                  onClick={() => {
+                    if ('href' in link) {
+                      window.location.href = link.href;
+                    } else {
+                      scrollToSection(link.ref);
+                    }
+                  }}
                   className="text-sm text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   {link.name}
                 </button>
-              ))}
-              <Button 
                 onClick={() => scrollToSection(contactRef)}
                 className="bg-white text-black hover:bg-gray-200 text-sm font-medium"
               >
@@ -93,12 +99,19 @@ function App() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-md border-b border-white/10">
             <div className="px-4 py-4 space-y-3">
-              {navLinks.map((link) => (
                 <button
                   key={link.name}
-                  onClick={() => scrollToSection(link.ref)}
+                  onClick={() => {
+                    if ('href' in link) {
+                      window.location.href = link.href;
+                    } else {
+                      scrollToSection(link.ref);
+                    }
+                  }}
                   className="block w-full text-left text-gray-300 hover:text-white py-2 transition-colors"
                 >
+                  {link.name}
+                </button>
                   {link.name}
                 </button>
               ))}
