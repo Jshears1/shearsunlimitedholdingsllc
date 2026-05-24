@@ -35,7 +35,7 @@ function App() {
     setMobileMenuOpen(false);
   };
 
-  const navLinks = [
+  const navLinks: Array<{name: string; ref?: React.RefObject<HTMLDivElement | null>; href?: string}> = [
     { name: 'Home', ref: heroRef },
     { name: 'About', ref: aboutRef },
     { name: 'Services', ref: servicesRef },
@@ -43,7 +43,7 @@ function App() {
     { name: 'Shop', href: '/shop' },
     { name: 'Contact', ref: contactRef },
   ];
-  ];
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
       {/* Navigation */}
@@ -67,17 +67,13 @@ function App() {
               {navLinks.map((link) => (
                 <button
                   key={link.name}
-                  onClick={() => {
-                    if ('href' in link) {
-                      window.location.href = link.href;
-                    } else {
-                      scrollToSection(link.ref);
-                    }
-                  }}
+                  onClick={() => {'href' in link && link.href ? window.location.href = link.href : scrollToSection(link.ref as React.RefObject<HTMLDivElement | null>)}}
                   className="text-sm text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   {link.name}
                 </button>
+              ))}
+              <Button 
                 onClick={() => scrollToSection(contactRef)}
                 className="bg-white text-black hover:bg-gray-200 text-sm font-medium"
               >
@@ -99,19 +95,12 @@ function App() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-md border-b border-white/10">
             <div className="px-4 py-4 space-y-3">
+              {navLinks.map((link) => (
                 <button
                   key={link.name}
-                  onClick={() => {
-                    if ('href' in link) {
-                      window.location.href = link.href;
-                    } else {
-                      scrollToSection(link.ref);
-                    }
-                  }}
+                  onClick={() => {'href' in link && link.href ? window.location.href = link.href : scrollToSection(link.ref as React.RefObject<HTMLDivElement | null>)}}
                   className="block w-full text-left text-gray-300 hover:text-white py-2 transition-colors"
                 >
-                  {link.name}
-                </button>
                   {link.name}
                 </button>
               ))}
@@ -456,7 +445,7 @@ function App() {
               {navLinks.map((link) => (
                 <button
                   key={link.name}
-                  onClick={() => scrollToSection(link.ref)}
+                  onClick={() => {'href' in link && link.href ? window.location.href = link.href : scrollToSection(link.ref as React.RefObject<HTMLDivElement | null>)}}
                   className="text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   {link.name}
