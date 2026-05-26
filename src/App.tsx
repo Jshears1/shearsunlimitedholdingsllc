@@ -16,12 +16,19 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartProvider, useCart } from '@/context/CartContext';
+import { AdminProvider } from '@/context/AdminContext';
 import ShopPage from '@/pages/ShopPage';
 import ProductDetailPage from '@/pages/ProductDetailPage';
 import CartPage from '@/pages/CartPage';
 import CheckoutPage from '@/pages/CheckoutPage';
 import CheckoutSuccessPage from '@/pages/CheckoutSuccessPage';
 import CheckoutCancelPage from '@/pages/CheckoutCancelPage';
+import AdminLoginPage from '@/pages/admin/AdminLoginPage';
+import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import AdminProductsPage from '@/pages/admin/AdminProductsPage';
+import AdminProductFormPage from '@/pages/admin/AdminProductFormPage';
+import AdminOrdersPage from '@/pages/admin/AdminOrdersPage';
 
 // ── Navigation ─────────────────────────────────────────────────────────────────
 
@@ -373,19 +380,31 @@ function ScrollToTop() {
 export default function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <ScrollToTop />
-        <Nav />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/shop" element={<ShopPage />} />
-          <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
-          <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
-        </Routes>
-      </CartProvider>
+      <AdminProvider>
+        <CartProvider>
+          <ScrollToTop />
+          <Routes>
+            {/* Public routes with nav */}
+            <Route path="/" element={<><Nav /><HomePage /></>} />
+            <Route path="/shop" element={<><Nav /><ShopPage /></>} />
+            <Route path="/product/:id" element={<><Nav /><ProductDetailPage /></>} />
+            <Route path="/cart" element={<><Nav /><CartPage /></>} />
+            <Route path="/checkout" element={<><Nav /><CheckoutPage /></>} />
+            <Route path="/checkout/success" element={<><Nav /><CheckoutSuccessPage /></>} />
+            <Route path="/checkout/cancel" element={<><Nav /><CheckoutCancelPage /></>} />
+
+            {/* Admin routes (no main nav) */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="products" element={<AdminProductsPage />} />
+              <Route path="products/new" element={<AdminProductFormPage />} />
+              <Route path="products/:id/edit" element={<AdminProductFormPage />} />
+              <Route path="orders" element={<AdminOrdersPage />} />
+            </Route>
+          </Routes>
+        </CartProvider>
+      </AdminProvider>
     </BrowserRouter>
   );
 }
