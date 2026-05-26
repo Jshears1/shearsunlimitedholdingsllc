@@ -31,6 +31,10 @@
       "head_sampling_rate": 1
     }
   },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
   "d1_databases": [
     {
       "binding": "DB",
