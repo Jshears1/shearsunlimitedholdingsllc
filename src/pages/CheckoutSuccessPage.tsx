@@ -3,8 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { CheckCircle, ShoppingBag, Package, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
-
-const API_BASE = 'https://shearsunlimitedholdingsllc.jessenshears.workers.dev';
+import { API_BASE } from '@/lib/api';
 
 interface OrderItem { id: number; title: string; price: number; quantity: number; category: string }
 

@@ -6,8 +6,7 @@ import { Lock, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import type { CartItem } from '@/context/CartContext';
-
-const API_BASE = 'https://shearsunlimitedholdingsllc.jessenshears.workers.dev';
+import { API_BASE } from '@/lib/api';
 
 type Address = { name: string; email: string; street: string; city: string; state: string; zip: string; country: string };
 const blank: Address = { name: '', email: '', street: '', city: '', state: 'AL', zip: '', country: 'US' };

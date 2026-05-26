@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingCart, Search, Filter, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
-
-const API_BASE = 'https://shearsunlimitedholdingsllc.jessenshears.workers.dev';
+import { API_BASE } from '@/lib/api';
 
 interface Product {
   id: number;

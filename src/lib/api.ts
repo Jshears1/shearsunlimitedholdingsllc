@@ -1,4 +1,4 @@
-export const API_BASE = 'https://shearsunlimitedholdingsllc.jessenshears.workers.dev';
+export const API_BASE = 'https://www.shearsunlimitedholdingsllc.com';
 
 export function imgUrl(url: string | null | undefined): string {
   if (!url) return '';
