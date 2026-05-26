@@ -56,6 +56,9 @@ export default function AdminCatalogPage() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [page, setPage] = useState(0);
+  const [scrollId, setScrollId] = useState<string | null>(null);
+  const [hasNext, setHasNext] = useState(false);
+  const [scrollHistory, setScrollHistory] = useState<(string | null)[]>([null]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
@@ -65,23 +68,27 @@ export default function AdminCatalogPage() {
   const [showFilters, setShowFilters] = useState(false);
   const dandhToken = useRef('DandHCatalog2026!');
 
-  async function search(p = 0) {
+  async function search(targetPage = 0, sid: string | null = null) {
     setLoading(true);
     setError('');
     setImportResults(null);
     try {
+      const body: any = { ...filters };
+      if (sid) body.scrollId = sid;
       const res = await fetch(`${API_BASE}/api/dandh/catalog`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${dandhToken.current}`,
         },
-        body: JSON.stringify({ ...filters, page: p }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
       setItems(data.items || []);
-      setPage(p);
+      setPage(targetPage);
+      setScrollId(data.scrollId || null);
+      setHasNext(data.hasNext || false);
       setSearched(true);
       setSelected(new Set());
     } catch (e: any) {
@@ -89,6 +96,17 @@ export default function AdminCatalogPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function goNext() {
+    const nextPage = page + 1;
+    setScrollHistory(h => { const n = [...h]; n[nextPage] = scrollId; return n; });
+    search(nextPage, scrollId);
+  }
+
+  function goPrev() {
+    const prevPage = page - 1;
+    search(prevPage, scrollHistory[prevPage] ?? null);
   }
 
   function toggleSelect(sku: string) {
@@ -202,7 +220,7 @@ export default function AdminCatalogPage() {
             <Filter className="w-4 h-4" /> Filters
           </button>
           <button
-            onClick={() => search(0)}
+            onClick={() => { setScrollHistory([null]); search(0, null); }}
             disabled={loading}
             className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-60"
           >
@@ -337,10 +355,10 @@ export default function AdminCatalogPage() {
           )}
 
           {/* Pagination */}
-          {items.length === 200 && (
+          {(page > 0 || hasNext) && (
             <div className="flex items-center justify-center gap-3">
               <button
-                onClick={() => search(page - 1)}
+                onClick={goPrev}
                 disabled={page === 0 || loading}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
@@ -348,9 +366,9 @@ export default function AdminCatalogPage() {
               </button>
               <span className="text-sm text-gray-500">Page {page + 1}</span>
               <button
-                onClick={() => search(page + 1)}
-                disabled={loading}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:text-white disabled:opacity-30"
+                onClick={goNext}
+                disabled={!hasNext || loading}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Next <ChevronRight className="w-4 h-4" />
               </button>
