@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
-import { Package, ShoppingBag, LayoutDashboard, LogOut, Menu, X, ExternalLink } from 'lucide-react';
+import { Package, ShoppingBag, LayoutDashboard, LogOut, Menu, X, ExternalLink, Search } from 'lucide-react';
 import { useAdmin } from '@/context/AdminContext';
 
 const navItems = [
   { path: '/admin/products', label: 'Products', icon: Package },
   { path: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { path: '/admin/catalog', label: 'D&H Catalog', icon: Search },
 ];
 
 export default function AdminLayout() {

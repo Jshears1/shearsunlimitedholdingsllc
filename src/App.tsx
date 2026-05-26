@@ -33,6 +33,7 @@ import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import AdminProductsPage from '@/pages/admin/AdminProductsPage';
 import AdminProductFormPage from '@/pages/admin/AdminProductFormPage';
 import AdminOrdersPage from '@/pages/admin/AdminOrdersPage';
+import AdminCatalogPage from '@/pages/admin/AdminCatalogPage';
 
 // ── Navigation ─────────────────────────────────────────────────────────────────
 
@@ -414,6 +415,7 @@ export default function App() {
               <Route path="products/new" element={<AdminProductFormPage />} />
               <Route path="products/:id/edit" element={<AdminProductFormPage />} />
               <Route path="orders" element={<AdminOrdersPage />} />
+              <Route path="catalog" element={<AdminCatalogPage />} />
             </Route>
           </Routes>
         </CartProvider>
