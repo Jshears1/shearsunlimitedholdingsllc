@@ -23,6 +23,10 @@ import CartPage from '@/pages/CartPage';
 import CheckoutPage from '@/pages/CheckoutPage';
 import CheckoutSuccessPage from '@/pages/CheckoutSuccessPage';
 import CheckoutCancelPage from '@/pages/CheckoutCancelPage';
+import PrivacyPage from '@/pages/PrivacyPage';
+import TermsPage from '@/pages/TermsPage';
+import ReturnsPage from '@/pages/ReturnsPage';
+import ShippingPage from '@/pages/ShippingPage';
 import AdminLoginPage from '@/pages/admin/AdminLoginPage';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
@@ -361,7 +365,12 @@ function HomePage() {
           </div>
           <div className="mt-8 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-500">© {new Date().getFullYear()} Shears Unlimited Holdings LLC. All rights reserved.</p>
-            <p className="text-sm text-gray-500">A Limited Liability Company</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link to="/privacy" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Privacy</Link>
+              <Link to="/terms" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Terms</Link>
+              <Link to="/returns" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Returns</Link>
+              <Link to="/shipping" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Shipping</Link>
+            </div>
           </div>
         </div>
       </footer>
@@ -392,6 +401,10 @@ export default function App() {
             <Route path="/checkout" element={<><Nav /><CheckoutPage /></>} />
             <Route path="/checkout/success" element={<><Nav /><CheckoutSuccessPage /></>} />
             <Route path="/checkout/cancel" element={<><Nav /><CheckoutCancelPage /></>} />
+            <Route path="/privacy" element={<><Nav /><PrivacyPage /></>} />
+            <Route path="/terms" element={<><Nav /><TermsPage /></>} />
+            <Route path="/returns" element={<><Nav /><ReturnsPage /></>} />
+            <Route path="/shipping" element={<><Nav /><ShippingPage /></>} />
 
             {/* Admin routes (no main nav) */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
