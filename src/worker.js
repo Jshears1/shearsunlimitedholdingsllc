@@ -146,20 +146,29 @@ function slug(title) {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now();
 }
 __name(slug, "slug");
+function makeSlug(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+__name(makeSlug, "makeSlug");
 var _tok = null;
 var _exp = 0;
 async function dandhToken(env) {
   if (_tok && Date.now() < _exp) return _tok;
-  const creds = btoa(`${env.DANDH_CLIENT_ID}:${env.DANDH_CLIENT_SECRET}`);
-  const r = await fetch("https://api.dandh.com/v1/oauth/token", {
-    method: "POST",
-    headers: { Authorization: `Basic ${creds}`, "Content-Type": "application/x-www-form-urlencoded" },
-    body: "grant_type=client_credentials"
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: env.DANDH_CLIENT_ID,
+    client_secret: env.DANDH_CLIENT_SECRET,
+    scope: "resource.READ"
   });
-  if (!r.ok) throw new Error("D&H auth " + r.status);
+  const r = await fetch("https://auth.dandh.com/api/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString()
+  });
+  if (!r.ok) throw new Error("D&H auth " + r.status + ": " + await r.text());
   const d = await r.json();
   _tok = d.access_token;
-  _exp = Date.now() + (d.expires_in - 60) * 1e3;
+  _exp = Date.now() + ((d.expires_in || 3600) - 60) * 1e3;
   return _tok;
 }
 __name(dandhToken, "dandhToken");
@@ -229,9 +238,12 @@ var worker_default = {
       const { results } = await env.DB.prepare(query).bind(...binds).all();
       return j(results);
     }
-    if (path.match(/^\/api\/products\/(\d+)$/) && meth === "GET") {
-      const productId = path.split("/").pop();
-      const product = await env.DB.prepare("SELECT * FROM products WHERE id=? AND active=1").bind(productId).first();
+    if (path.match(/^\/api\/products\/([^/]+)$/) && meth === "GET") {
+      const idOrSlug = path.split("/").pop();
+      const isNumeric = /^\d+$/.test(idOrSlug);
+      const product = isNumeric
+        ? await env.DB.prepare("SELECT * FROM products WHERE id=? AND active=1").bind(idOrSlug).first()
+        : await env.DB.prepare("SELECT * FROM products WHERE slug=? AND active=1").bind(idOrSlug).first();
       if (!product) return j({ error: "Product not found" }, 404);
       return j(product);
     }
@@ -411,40 +423,49 @@ var worker_default = {
           `INSERT INTO products (title,description,price,category,emoji,color,tag,badge,stripe_link,paypal_link,image_url,active)
                                                VALUES (?,?,?,?,?,?,?,?,?,?,?,1)`
         ).bind(
-          p.title,
-          p.description,
-          p.price,
-          p.category,
-          p.emoji || "\u{1F4E6}",
-          p.color || "#F5F5F5",
-          p.tag || "",
-          p.badge || "",
-          p.stripe_link || "",
-          p.paypal_link || "",
-          p.image_url || ""
+          p.title, p.description, p.price, p.category,
+          p.emoji || "\u{1F4E6}", p.color || "#F5F5F5",
+          p.tag || "", p.badge || "",
+          p.stripe_link || "", p.paypal_link || "", p.image_url || ""
         ).run();
-        return j({ success: true, id: meta.last_row_id });
+        const newId = meta.last_row_id;
+        try {
+          const slugBase = makeSlug(p.title);
+          const existing = await env.DB.prepare("SELECT id FROM products WHERE slug=? AND id!=?").bind(slugBase, newId).first();
+          const finalSlug = existing ? `${slugBase}-${newId}` : slugBase;
+          await env.DB.prepare("UPDATE products SET slug=? WHERE id=?").bind(finalSlug, newId).run();
+        } catch {}
+        return j({ success: true, id: newId });
       }
       const prodM = path.match(/^\/api\/admin\/products\/(\d+)$/);
       if (prodM && meth === "PUT") {
         const p = sanitizeObj(await req.json());
-        await env.DB.prepare(
-          `UPDATE products SET title=?,description=?,price=?,category=?,emoji=?,color=?,tag=?,badge=?,stripe_link=?,paypal_link=?,image_url=?,active=? WHERE id=?`
-        ).bind(
-          p.title,
-          p.description,
-          p.price,
-          p.category,
-          p.emoji,
-          p.color,
-          p.tag,
-          p.badge,
-          p.stripe_link,
-          p.paypal_link,
-          p.image_url || "",
-          p.active ? 1 : 0,
-          prodM[1]
-        ).run();
+        const prodId = prodM[1];
+        let updSlug = null;
+        try {
+          const slugBase = makeSlug(p.title);
+          const existing = await env.DB.prepare("SELECT id FROM products WHERE slug=? AND id!=?").bind(slugBase, prodId).first();
+          updSlug = existing ? `${slugBase}-${prodId}` : slugBase;
+        } catch {}
+        if (updSlug) {
+          await env.DB.prepare(
+            `UPDATE products SET title=?,description=?,price=?,category=?,emoji=?,color=?,tag=?,badge=?,stripe_link=?,paypal_link=?,image_url=?,slug=?,active=? WHERE id=?`
+          ).bind(
+            p.title, p.description, p.price, p.category,
+            p.emoji, p.color, p.tag, p.badge,
+            p.stripe_link, p.paypal_link, p.image_url || "",
+            updSlug, p.active ? 1 : 0, prodId
+          ).run();
+        } else {
+          await env.DB.prepare(
+            `UPDATE products SET title=?,description=?,price=?,category=?,emoji=?,color=?,tag=?,badge=?,stripe_link=?,paypal_link=?,image_url=?,active=? WHERE id=?`
+          ).bind(
+            p.title, p.description, p.price, p.category,
+            p.emoji, p.color, p.tag, p.badge,
+            p.stripe_link, p.paypal_link, p.image_url || "",
+            p.active ? 1 : 0, prodId
+          ).run();
+        }
         return j({ success: true });
       }
       if (prodM && meth === "DELETE") {
@@ -528,6 +549,19 @@ var worker_default = {
         await env.DB.exec("CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)");
         return j({ success: true, message: "Orders table ready" });
       }
+      if (path === "/api/admin/migrate-slugs" && meth === "POST") {
+        try { await env.DB.exec("ALTER TABLE products ADD COLUMN slug TEXT"); } catch {}
+        const { results } = await env.DB.prepare("SELECT id, title FROM products WHERE slug IS NULL OR slug = ''").all();
+        let updated = 0;
+        for (const p of results) {
+          const base = makeSlug(p.title);
+          const existing = await env.DB.prepare("SELECT id FROM products WHERE slug=? AND id!=?").bind(base, p.id).first();
+          const s = existing ? `${base}-${p.id}` : base;
+          await env.DB.prepare("UPDATE products SET slug=? WHERE id=?").bind(s, p.id).run();
+          updated++;
+        }
+        return j({ success: true, updated });
+      }
       if (path === "/api/admin/orders" && meth === "GET") {
         const status = url.searchParams.get("status");
         let query = "SELECT * FROM orders";
@@ -561,43 +595,59 @@ var worker_default = {
       try {
         tok = await dandhToken(env);
       } catch (e) {
-        return j({ error: "D&H auth failed \u2014 check Worker secrets." }, 502);
+        return j({ error: "D&H auth failed \u2014 " + e.message }, 502);
       }
-      const params = new URLSearchParams({ limit: "200", offset: String((filters.page || 0) * 200) });
-      if (filters.keyword) params.set("search", filters.keyword);
-      if (filters.brand) params.set("manufacturer", filters.brand);
-      const dr = await fetch(`https://api.dandh.com/v1/products?${params}`, {
-        headers: { Authorization: `Bearer ${tok}`, Accept: "application/json", "X-AccountNumber": env.DANDH_ACCOUNT || "" }
+      const account = env.DANDH_ACCOUNT || "3310440000";
+      const params = new URLSearchParams({ pageSize: "100", itemType: "Merchandise" });
+      if (filters.scrollId) params.set("scrollId", filters.scrollId);
+      const dr = await fetch(`https://api.dandh.com/catalog/v1/customers/${account}/items?${params}`, {
+        headers: {
+          Authorization: `Bearer ${tok}`,
+          "accept": "application/json",
+          "dandh-tenant": "dhus"
+        }
       });
       if (!dr.ok) {
         const t = await dr.text();
         return j({ error: `D&H ${dr.status}: ${t}` }, dr.status);
       }
       const raw = await dr.json();
-      let items = (raw.products || raw.items || raw || []).map((p) => {
-        const cost = parseFloat(p.price || p.unitPrice || p.cost || 0);
-        const map = parseFloat(p.mapPrice || p.map || 0);
-        const { sell, net, margin } = profit(cost, map);
+      const elements = raw.elements || raw.items || raw || [];
+      const kw = (filters.keyword || "").toLowerCase();
+      const brand = (filters.brand || "").toLowerCase();
+      let items = elements.map((p) => {
+        const cost = parseFloat(p.approximatePrice || p.yourCost || p.price || 0);
+        const erp = parseFloat(p.estimatedRetailPrice || p.retailPrice || 0);
+        const map = parseFloat(p.minimumAdvertisedPrice || p.mapPrice || 0);
+        const sell = map > 0 ? map : (erp > 0 ? erp : cost * 1.4);
+        const net = +(sell - cost).toFixed(2);
+        const margin = sell > 0 ? +(net / sell * 100).toFixed(1) : 0;
+        const dims = p.shippingDimensions || {};
+        const weight = parseFloat(dims.weight || p.weight || 0);
+        const upc = p.universalProductCode || p.upc || "";
         return {
-          sku: p.sku || p.partNumber || "",
+          sku: p.itemId || p.vendorItemId || p.sku || "",
           title: p.description || p.title || p.name || "",
-          brand: p.manufacturer || p.brand || "",
-          upc: p.upc || "",
-          cost,
-          map,
-          sell,
+          brand: p.vendorName || p.manufacturer || p.brand || "",
+          upc,
+          cost: +cost.toFixed(2),
+          map: +map.toFixed(2),
+          sell: +sell.toFixed(2),
           net,
           margin,
-          weight: parseFloat(p.weight || 0),
-          condition: p.condition || "New",
-          inStock: p.availability === "instock" || (p.quantityAvailable || 0) > 0,
+          weight,
+          condition: "New",
+          inStock: p.itemStatus === "active" || p.availability === "instock",
           image: p.imageUrl || p.image || "",
           category: p.category || "",
-          hasUpc: !!(p.upc && p.upc.length > 5),
-          isPhysical: parseFloat(p.weight || 0) > 0,
+          hasUpc: !!(upc && upc.length > 5 && upc !== "000000000000"),
+          isPhysical: weight > 0,
           hasMap: map > 0
         };
       });
+      // Client-side keyword/brand filter
+      if (kw) items = items.filter(p => p.title.toLowerCase().includes(kw) || p.brand.toLowerCase().includes(kw) || p.sku.toLowerCase().includes(kw));
+      if (brand) items = items.filter(p => p.brand.toLowerCase().includes(brand));
       if (filters.hasUpcOnly) items = items.filter((p) => p.hasUpc);
       if (filters.physicalOnly) items = items.filter((p) => p.isPhysical);
       if (filters.mapOnly) items = items.filter((p) => p.hasMap);
@@ -608,7 +658,7 @@ var worker_default = {
       if (filters.minMargin) items = items.filter((p) => p.margin >= +filters.minMargin);
       if (filters.maxWeight) items = items.filter((p) => p.weight <= +filters.maxWeight);
       if (filters.minWeight) items = items.filter((p) => p.weight >= +filters.minWeight);
-      return j({ total: items.length, items });
+      return j({ total: items.length, items, hasNext: raw.hasNext || false, scrollId: raw.scrollId || null });
     }
     // ── Sitemap ───────────────────────────────────────────────────────────────
     if (path === "/robots.txt" && meth === "GET") {
@@ -617,19 +667,32 @@ var worker_default = {
     }
 
     if (path === "/sitemap.xml" && meth === "GET") {
-      const { results } = await env.DB.prepare("SELECT id,title FROM products WHERE active=1").all();
+      const { results } = await env.DB.prepare("SELECT id,title,slug FROM products WHERE active=1").all();
       const base = "https://www.shearsunlimitedholdingsllc.com";
       const staticUrls = ["/", "/shop"].map(u =>
         `<url><loc>${base}${u}</loc><changefreq>weekly</changefreq><priority>${u === "/" ? "1.0" : "0.8"}</priority></url>`
       ).join("\n  ");
       const productUrls = results.map(p =>
-        `<url><loc>${base}/product/${p.id}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`
+        `<url><loc>${base}/product/${p.slug || p.id}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`
       ).join("\n  ");
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  ${staticUrls}\n  ${productUrls}\n</urlset>`;
       return new Response(xml, { headers: { "Content-Type": "application/xml", "Cache-Control": "public,max-age=3600" } });
     }
 
+    if (meth === "GET" && !path.startsWith("/api/") && /^\/google[a-f0-9]+\.html$/.test(path)) {
+      return env.ASSETS.fetch(req);
+    }
     if (meth === "GET" && !path.startsWith("/api/")) {
+      // Redirect numeric product IDs to slug URLs for canonical SEO
+      const numericProductMatch = path.match(/^\/product\/(\d+)$/);
+      if (numericProductMatch) {
+        const base = "https://www.shearsunlimitedholdingsllc.com";
+        const prod = await env.DB.prepare("SELECT slug FROM products WHERE id=? AND active=1").bind(numericProductMatch[1]).first();
+        if (prod?.slug) {
+          return Response.redirect(`${base}/product/${prod.slug}`, 301);
+        }
+      }
+
       // Always fetch /index.html using an absolute URL to avoid relative-path issues
       const indexUrl = new URL("/index.html", req.url).href;
       let htmlRes = await env.ASSETS.fetch(new Request(indexUrl, { headers: req.headers }));
@@ -641,10 +704,15 @@ var worker_default = {
       let title = "Shears Unlimited Holdings LLC | Shop Physical & Digital Products";
       let description = "Browse and shop physical products, digital downloads, and print-on-demand items at Shears Unlimited Holdings LLC.";
       let schema = null;
+      let extraSchema = null;
 
-      const productMatch = path.match(/^\/product\/(\d+)$/);
+      const productMatch = path.match(/^\/product\/([^/]+)$/);
       if (productMatch) {
-        const prod = await env.DB.prepare("SELECT * FROM products WHERE id=? AND active=1").bind(productMatch[1]).first();
+        const idOrSlug = productMatch[1];
+        const isNumeric = /^\d+$/.test(idOrSlug);
+        const prod = isNumeric
+          ? await env.DB.prepare("SELECT * FROM products WHERE id=? AND active=1").bind(idOrSlug).first()
+          : await env.DB.prepare("SELECT * FROM products WHERE slug=? AND active=1").bind(idOrSlug).first();
         if (prod) {
           title = `${prod.title} | Shears Unlimited Holdings LLC`;
           const plainDesc = prod.description
@@ -655,7 +723,9 @@ var worker_default = {
                 .replace(/\s+/g, " ").trim()
             : "";
           description = plainDesc ? plainDesc.slice(0, 155) : `Buy ${prod.title} at Shears Unlimited Holdings LLC.`;
-          schema = JSON.stringify({
+          const canonicalSlug = prod.slug || prod.id;
+          const productUrl = `${base}/product/${canonicalSlug}`;
+          const productSchema = {
             "@context": "https://schema.org",
             "@type": "Product",
             "name": prod.title,
@@ -666,13 +736,33 @@ var worker_default = {
               "price": prod.price.toFixed(2),
               "priceCurrency": "USD",
               "availability": "https://schema.org/InStock",
-              "url": `${base}/product/${prod.id}`
+              "url": productUrl
             }
-          });
+          };
+          const breadcrumbSchema = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": base },
+              { "@type": "ListItem", "position": 2, "name": "Shop", "item": `${base}/shop` },
+              { "@type": "ListItem", "position": 3, "name": prod.title, "item": productUrl }
+            ]
+          };
+          schema = JSON.stringify(productSchema);
+          extraSchema = JSON.stringify(breadcrumbSchema);
         }
       } else if (path === "/shop") {
         title = "Shop All Products | Shears Unlimited Holdings LLC";
         description = "Browse our full selection of physical products, digital downloads, and print-on-demand items.";
+      } else if (path === "/") {
+        schema = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Shears Unlimited Holdings LLC",
+          "url": base,
+          "description": "A diversified holding company focused on strategic investments, business development, and creating lasting value across diverse industries.",
+          "contactPoint": { "@type": "ContactPoint", "email": "info@shearsunlimitedholdings.com", "contactType": "customer service" }
+        });
       }
 
       const q = (s) => s.replace(/"/g, '&quot;');
@@ -680,7 +770,7 @@ var worker_default = {
         .on("title", { element(el) { el.setInnerContent(title); } })
         .on("head", {
           element(el) {
-            el.append(`<meta name="description" content="${q(description)}"><meta property="og:title" content="${q(title)}"><meta property="og:description" content="${q(description)}"><meta property="og:type" content="website"><meta property="og:url" content="${base}${path}"><link rel="canonical" href="${base}${path}">${schema ? `<script type="application/ld+json">${schema}</script>` : ""}`, { html: true });
+            el.append(`<meta name="google-site-verification" content="LR6VKpE0Ut-7T86jeFjaXa7fHliq1ltasSsnYJCwyXs"><script async src="https://www.googletagmanager.com/gtag/js?id=G-S6CTLYWDTK"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S6CTLYWDTK');</script><meta name="description" content="${q(description)}"><meta property="og:title" content="${q(title)}"><meta property="og:description" content="${q(description)}"><meta property="og:type" content="website"><meta property="og:url" content="${base}${path}"><link rel="canonical" href="${base}${path}">${schema ? `<script type="application/ld+json">${schema}</script>` : ""}${extraSchema ? `<script type="application/ld+json">${extraSchema}</script>` : ""}`, { html: true });
           }
         })
         .transform(htmlRes);
